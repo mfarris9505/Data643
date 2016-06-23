@@ -31,63 +31,64 @@ l = ['13','128','201','207','222','23','234','246','267','268','269','276','493'
 movies = movies.loc[:,l]
 movies = movies.fillna(value=0)
 
-movies_np = np.array(movies)
-movies_np = movies_np.astype(float)
-movies_np = np.insert(movies_np, 0, my_ratings, axis=1)
 
-mean_movie= []
-count_movie = []
+def rating(my_ratings, movies, index):
+    '''
+    Takes a list of ratings, Pandas dataframe of "movie ratings, 
+    and the index position of the movie you wish to "predict"
+    the rating of your choice. 
+    '''
+    movies_np = np.array(movies)
+    movies_np = movies_np.astype(float)
+    movies_np = np.insert(movies_np, 0, my_ratings, axis=1)
 
+    mean_movie= []
+    count_movie = []
 
-for row in movies_np:
+    for row in movies_np:
+        row_sum = np.sum(row)
+        count = np.count_nonzero(row)
+        count_movie.append(count)
+        mean_movie.append(row_sum/count)
+    count_user = []
+    mean_user = []
+
+    for row in movies_np.T:
+        row_sum = np.sum(row)
+        count = np.count_nonzero(row)
+        count_user.append(count)
+        mean_user.append(row_sum/count)
+
+    movies_np[movies_np==0] = np.nan
+
+    mean_cent = []
+    i = 0
+    for row in  movies_np:
+        mean_cent.append(row - mean_movie[i]) 
+        i += 1
     
-    row_sum = np.sum(row)
-    count = np.count_nonzero(row)
-    count_movie.append(count)
-    mean_movie.append(row_sum/count)
+    mean_cent = np.array(mean_cent)
+    mean_cent = np.nan_to_num(mean_cent)
+    U = []
 
-   
-count_user = []
-mean_user = []
+    for row in mean_cent:
+        y = 0
+        for val in row:
+            x = math.pow(val,2)
+            y = y + x
+        U.append(math.sqrt(y))
 
-for row in movies_np.T:
-    row_sum = np.sum(row)
-    count = np.count_nonzero(row)
-    count_user.append(count)
-    mean_user.append(row_sum/count)
+    num = np.dot(mean_cent.T,mean_cent)
 
-    
-movies_np[movies_np==0] = np.nan
-
-
-mean_cent = []
-i = 0
-for row in  movies_np:
-    mean_cent.append(row - mean_movie[i]) 
-    i += 1
-    
-mean_cent = np.array(mean_cent)
-
-mean_cent = np.nan_to_num(mean_cent)
-U = []
- 
-for row in mean_cent:
-    y = 0
-    for val in row:
-        x = math.pow(val,2)
-        y = y + x
-    U.append(math.sqrt(y))
-
-Mov_Mov =[]
-Mov = []
-
-cent_t = mean_cent.T
-
-num = np.dot(mean_cent,mean_cent.T)
-
-for i in range(20):
-    for j in range(20):
-        num[i,j] = num[i,j]/(U[i]*U[j])
+    for i in range(20):
+        for j in range(20):
+            num[i,j] = num[i,j]/(U[i]*U[j])
         
-        
+    Sort = np.array(U[0])
+    ind = Sort.argsort()[-2:][::-1]
+    
+    return ind
+    
+rating(my_ratings, movies, 1)   
+    
         
