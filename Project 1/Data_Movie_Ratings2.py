@@ -9,7 +9,8 @@ import pandas as pd
 import numpy as np
 import math
 import csv
-
+from sklearn.metrics import pairwise_distances
+from scipy.spatial.distance import cosine
 
 # Data file containing ratings data
 f = open("data/u.data")
@@ -31,43 +32,48 @@ l = ['13','128','201','207','222','23','234','246','267','268','269','276','493'
 movies = movies.loc[:,l]
 movies = movies.fillna(value=0)
 
-index = 15
- 
 movies_np = np.array(movies)
 movies_np = movies_np.astype(float)
 movies_np = np.insert(movies_np, 0, my_ratings, axis=1)
-mean_movie= []
-count_movie = []
 
-for row in movies_np:
+ 
+def norm_mean_cent(movies_np):
+    mean_movie= []
     
-    row_sum = np.sum(row)
-    count = np.count_nonzero(row)
-    count_movie.append(count)
-    mean_movie.append(row_sum/count)
+    count_movie = []
 
-   
-count_user = []
-mean_user = []
+    for row in movies_np:
+        row_sum = np.sum(row)
+        count = np.count_nonzero(row)
+        count_movie.append(count)
+        mean_movie.append(row_sum/count)
+    count_user = []
+    mean_user = []
 
-for row in movies_np.T:
-    row_sum = np.sum(row)
-    count = np.count_nonzero(row)
-    count_user.append(count)
-    mean_user.append(row_sum/count)
+    for row in movies_np.T:
+        row_sum = np.sum(row)
+        count = np.count_nonzero(row)
+        count_user.append(count)
+        mean_user.append(row_sum/count)
 
+    movies_np[movies_np==0] = np.nan
+
+    mean_cent = []
+    i = 0
+    for row in  movies_np:
+        mean_cent.append(row - mean_movie[i]) 
+        i += 1
     
-movies_np[movies_np==0] = np.nan
-
-mean_cent = []
-i = 0
-for row in  movies_np:
-    mean_cent.append(row - mean_movie[i]) 
-    i += 1
+    mean_cent = np.array(mean_cent)
+    mean_cent = np.nan_to_num(mean_cent)
     
-mean_cent = np.array(mean_cent)
+    return mean_cent
 
-mean_cent = np.nan_to_num(mean_cent)
+
+
+mean_cent = norm_mean_cent(movies_np)
+
+
 U = []
  
 for row in mean_cent:
@@ -122,3 +128,4 @@ from sklearn.preprocessing import Imputer
 pre = Imputer(missing_values=0, strategy='mean')
 
 movies_fit = pre.fit_transform(movies_np)
+"""
