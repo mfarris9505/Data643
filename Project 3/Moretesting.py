@@ -74,12 +74,9 @@ RMSE = []
 
 k = [1,2,3,4,5,10,20,30,40,50,100,200,300,400,500]
 
-
 for i in k:
     pred = pred_item(movies_mean, i)
-    x = mean_absolute_error(movies_int[np.where(movies_int >0)], pred[np.where(movies_int >0)])
     y = mean_squared_error(movies_int[np.where(movies_int >0)], pred[np.where(movies_int >0)])   
-    MAE.append(x)
     RMSE.append(math.sqrt(y))
     
     
