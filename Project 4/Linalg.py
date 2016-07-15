@@ -7,11 +7,6 @@ Created on Tue Jul 12 20:40:52 2016
 import pandas as pd 
 import numpy as np
 import csv
-import math
-from sklearn.metrics import pairwise_distances
-from sklearn.metrics import mean_absolute_error
-from sklearn.metrics import mean_squared_error
-import matplotlib.pyplot as plt
 
 
 #Data file containing ratings data
@@ -40,7 +35,7 @@ item_mean = movies.mean(skipna=True)
 movies = movies.apply(lambda x: x.fillna(x.mean(skipna = True)),axis=1)
 movies_mean = movies.apply(lambda x: x-x.mean(), axis = 1).round(5)
 
-#Using SVD to find 
+#Using ALS to obtain rating Matrix 
 movies_np = np.array(movies_mean)
 movies_np = movies_np.astype(float)
 
@@ -50,7 +45,7 @@ def get_error(Q, X, Y, W):
 
 Q = movies_np
 
-W = Q>0.5
+W = Q != 0
 W[W == True] = 1
 W[W == False] = 0
 # To be consistent with our Q matrix
@@ -82,5 +77,5 @@ weighted_Q_hat = np.dot(X,Y)
 weighted_Q_hat = np.round(weighted_Q_hat, decimals = 3)
 weighted_errors = np.round(weighted_errors, decimals = 3)
 
-np.savetxt("Q.csv", weighted_Q_hat, delimiter=",")
-np.savetxt("Q_err.csv", weighted_errors, delimiter=",")
+np.savetxt("Q.csv", weighted_Q_hat, fmt='%1.3f', delimiter=",")
+np.savetxt("Q_err.csv", weighted_errors, fmt='%1.3f', delimiter=",")

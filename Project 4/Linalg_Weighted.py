@@ -7,7 +7,6 @@ import pandas as pd
 import numpy as np
 import csv
 
-
 #Data file containing ratings data
 f = open("data/u.data")
 text = csv.reader(f, delimiter = "\t")
@@ -72,9 +71,7 @@ def Age_Range(x):
 
 user_pd['age'] = user_pd['age'].astype(int)
 user_pd['age'] = user_pd['age'].map(Age_Range)
-
 user_pd = user_pd.replace({"gender": map_gender,'occupation': map_jobs})
-
 
 #Creating Dummy col for Jobs
 dummies = pd.get_dummies(user_pd['occupation'], prefix='job', prefix_sep='_')
@@ -91,8 +88,6 @@ for i,value in enumerate(col_names_dummies):
     user_pd[value] = dummies.iloc[:,i]
 
 user_pd = user_pd.drop(["age","occupation","zip"], 1)
-
-
 movies = movies.apply(pd.to_numeric, errors='coerce')
 movies_int = np.array(movies)
 np.nan_to_num(movies_int)
@@ -120,7 +115,7 @@ users = users.apply(pd.to_numeric, errors='coerce')
 users = users.apply(lambda x: x.fillna(.000001),axis=1)
 
 
-#Some Functions 
+#Some Functions including an Error function from Bugra[5]
 def get_error(Q, X, Y, W):
     return np.sum((W * (Q - np.dot(X, Y)))**2)
 
@@ -140,14 +135,11 @@ def svd_red(movies_mean,n):
 y_r, Uy, Vy = svd_red(items,10)
 x_R, Ux, Vx = svd_red(users, 10)
 
-    
-from sklearn.preprocessing import scale
-Uy = scale( Uy, axis=0, with_mean=True, with_std=True, copy=True )
 
-
+# Adapted code from Bugra[5] for ALS 
 Q = movies_np
 
-W = Q>0.5
+W = Q!=0
 W[W == True] = 1
 W[W == False] = 0
 # To be consistent with our Q matrix
@@ -163,8 +155,6 @@ n_iterations = 20
 X = 5 * Ux
 Y = 5 * Uy.T
 
-
-
 weighted_errors = []
 for ii in range(n_iterations):
     for u, Wu in enumerate(W):
@@ -178,9 +168,9 @@ for ii in range(n_iterations):
 weighted_Q_hat = np.dot(X,Y)
 #print('Error of rated movies: {}'.format(get_error(Q, X, Y, W)))
 
-
+#Rounding and saving
 weighted_Q_hat = np.round(weighted_Q_hat, decimals = 3)
 weighted_errors = np.round(weighted_errors, decimals = 3)
 
-np.savetxt("Q_weighted.csv", weighted_Q_hat, delimiter=",")
-np.savetxt("Q_weighted_err.csv", weighted_errors, delimiter=",")
+np.savetxt("Q_weighted.csv", weighted_Q_hat, fmt='%1.3f', delimiter=",")
+np.savetxt("Q_weighted_err.csv", weighted_errors, fmt='%1.3f', delimiter=",")
